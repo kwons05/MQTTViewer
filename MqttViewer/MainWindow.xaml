@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"                
         xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:MqttViewer"
         mc:Ignorable="d"
@@ -29,58 +30,49 @@
             </StackPanel>
         </Grid>
         <TabControl Grid.Row="1" SelectedIndex="1">
-            <TabItem Header="Infomatin">
+            <TabItem Header="Infomatin" >
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <DataGrid Name="DwTag" ItemsSource="{Binding TagLocations}" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal"  >
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="x" Width="1*" Binding="{Binding Location.position.x}"/>
-                            <DataGridTextColumn Header="y" Width="1*" Binding="{Binding Location.position.y}" />
-                            <DataGridTextColumn Header="z" Width="1*" Binding="{Binding Location.position.z}" />
-                            <DataGridTextColumn Header="quality" Width="1*" Binding="{Binding Location.position.quality}" />
-                        </DataGrid.Columns>
-                    </DataGrid>
+                    <TreeView x:Name="topicTreeView" Grid.Column="0" BorderThickness="1" BorderBrush="Gainsboro"
+                              ItemsSource="{Binding Nodes}">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="SelectedItemChanged">
+                                <i:InvokeCommandAction Command="{Binding TopicSelectCommand}"
+                                   CommandParameter="{Binding ElementName=topicTreeView ,Path=SelectedItem}"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate ItemsSource="{Binding SubNodes}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}"/>
+                                    <TextBlock Text="{Binding Value}"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                    <Grid Grid.Column="1">
+                        <TextBox Text="{Binding TopicValue}" FontFamily="Consolas" TextWrapping="Wrap" AcceptsReturn="True" />
+                    </Grid>
                 </Grid>
 
             </TabItem>
             <TabItem Header="Log">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid Grid.Column="0">
-                        <TreeView x:Name="CTreeView" FontSize="20" ItemsSource="{Binding Nodes}">
-                            <TreeView.ItemTemplate>
-                                <HierarchicalDataTemplate ItemsSource="{Binding SubNodes}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Name}"/>
-                                        <TextBlock Text="{Binding Value}"/>
-                                    </StackPanel>
-                                </HierarchicalDataTemplate>
-                            </TreeView.ItemTemplate>
-                        </TreeView>
-                    </Grid>
-
-                    <Grid Grid.Column="1">
-                        <RichTextBox x:Name="logText" VerticalScrollBarVisibility="Visible" FontFamily="Consolas"  FontSize="14"
-                                     Background="Black" Foreground="Snow">
-                            <FlowDocument>
-                                <Paragraph>
-                                    <Run Text="-"/>
-                                </Paragraph>
-                            </FlowDocument>
-                        </RichTextBox>
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="24,4">
-                            <TextBlock Margin="4,0" Foreground="SkyBlue">Auto Scroll</TextBlock>
-                            <CheckBox IsChecked="{Binding IsAutoScroll}"></CheckBox>
-                        </StackPanel>
-                    </Grid>
+                    <RichTextBox x:Name="logText" VerticalScrollBarVisibility="Visible" FontFamily="Consolas"  FontSize="14"
+                                    Background="Black" Foreground="Snow">
+                        <FlowDocument>
+                            <Paragraph>
+                                <Run Text="-"/>
+                            </Paragraph>
+                        </FlowDocument>
+                    </RichTextBox>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="24,4">
+                        <TextBlock Margin="4,0" Foreground="SkyBlue">Auto Scroll</TextBlock>
+                        <CheckBox IsChecked="{Binding IsAutoScroll}"></CheckBox>
+                    </StackPanel>
                 </Grid>
             </TabItem>
         </TabControl>

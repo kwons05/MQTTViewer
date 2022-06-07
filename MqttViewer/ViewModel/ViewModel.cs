@@ -15,6 +15,8 @@ using MqttViewer.Models;
 using MqttViewer.Module;
 using MqttViewer.Utility;
 using MQTTnet.Client;
+using Newtonsoft.Json.Linq;
+using MqttViewer.Popup;
 
 namespace MqttViewer.ViewModel
 {
@@ -41,10 +43,20 @@ namespace MqttViewer.ViewModel
 
         public ObservableCollection<Node> Nodes2 { get; set; }
 
+
+        private string _topicValue;
+        public string TopicValue
+        {
+            get { return _topicValue; }
+            set { SetProperty(ref _topicValue, value); }
+        }
+
         #region Command
         public DelegateCommand TestCommand { get; set; }
         public DelegateCommand ConnectCommand { get; set; }
         public DelegateCommand DisconnectCommand { get; set; }
+
+        public DelegateCommand<object> TopicSelectCommand { get; set; }
         #endregion
 
         private Client MqttClient;
@@ -58,6 +70,7 @@ namespace MqttViewer.ViewModel
             TestCommand = new DelegateCommand(TestMethod);
             ConnectCommand = new DelegateCommand(ConnectMethod);
             DisconnectCommand = new DelegateCommand(DisconnectMethod);
+            TopicSelectCommand = new DelegateCommand<object>(TopicSelectMethod);
 
             TagLocations = new ObservableCollection<TagLocation>();
 
@@ -68,7 +81,7 @@ namespace MqttViewer.ViewModel
 
         }
 
-        public void TestMethod()
+        public async void TestMethod()
         {
             string value = "{\"position\":{\"x\":4.5750785,\"y\":3.1802518,\"z\":-0.48464352,\"quality\":73},\"superFrameNumber\":677}";
 
@@ -95,6 +108,10 @@ namespace MqttViewer.ViewModel
             //Nodes.Add(grp1);
             //Nodes.Add(grp2);
             //Nodes.Add(grp3);
+
+            var popup = new IpAddressPopup();
+
+            popup.ShowDialog();
         }
 
         public void ConnectMethod()
@@ -104,6 +121,28 @@ namespace MqttViewer.ViewModel
         public void DisconnectMethod()
         {
             MqttClient.Stop();
+        }
+        private void TopicSelectMethod(object sender)
+        {
+            try
+            {
+                Node node = sender as Node;
+                if (node != null)
+                {
+                    if(!string.IsNullOrEmpty(node.Value))
+                    {
+                        TopicValue = JValue.Parse(node.Value).ToString(Formatting.Indented);
+                    }
+                    else
+                    {
+                        TopicValue = node.Value;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
         }
         private void MqttClient_MessageEvent(object sender, MqttApplicationMessageReceivedEventArgs e)
         {
@@ -134,7 +173,7 @@ namespace MqttViewer.ViewModel
                 var name = array[index];
                 var value = string.Empty;
                 if (index == (array.Length - 1)){
-                    value = $" = {Encoding.UTF8.GetString(message.Payload)}";
+                    value = $"{Encoding.UTF8.GetString(message.Payload)}";
                 }
 
                 var find = nodes.FirstOrDefault(x => x.Name == name);
@@ -149,7 +188,8 @@ namespace MqttViewer.ViewModel
                     newNode.Value = value;
                     nodes.Add(newNode);
                     nodes = newNode.SubNodes;
-                    
+
+
                 }
             }
 
