@@ -17,6 +17,8 @@ using MqttViewer.Utility;
 using MQTTnet.Client;
 using Newtonsoft.Json.Linq;
 using MqttViewer.Popup;
+using MQTTnet.Client.Connecting;
+using MQTTnet.Client.Disconnecting;
 
 namespace MqttViewer.ViewModel
 {
@@ -51,10 +53,18 @@ namespace MqttViewer.ViewModel
             set { SetProperty(ref _topicValue, value); }
         }
 
+        private Connection _connection;
+        public Connection Connection
+        {
+            get { return _connection; }
+            set { SetProperty(ref _connection, value); }
+        }
+        
+
         #region Command
         public DelegateCommand TestCommand { get; set; }
         public DelegateCommand ConnectCommand { get; set; }
-        public DelegateCommand DisconnectCommand { get; set; }
+
 
         public DelegateCommand<object> TopicSelectCommand { get; set; }
         #endregion
@@ -66,10 +76,11 @@ namespace MqttViewer.ViewModel
             MqttClient = new Client();
 
             MqttClient.MessageEvent += MqttClient_MessageEvent;
+            MqttClient.ConnectEvent += MqttClient_ConnectEvent;
+            MqttClient.DisConnectEvent += MqttClient_DisConnectEvent;
 
             TestCommand = new DelegateCommand(TestMethod);
             ConnectCommand = new DelegateCommand(ConnectMethod);
-            DisconnectCommand = new DelegateCommand(DisconnectMethod);
             TopicSelectCommand = new DelegateCommand<object>(TopicSelectMethod);
 
             TagLocations = new ObservableCollection<TagLocation>();
@@ -78,7 +89,12 @@ namespace MqttViewer.ViewModel
             Nodes = new ObservableCollection<Node>();
             Nodes2 = new ObservableCollection<Node>();
 
+            Connection = Connection.Connect;
 
+            //Properties.Settings.Default.HOST;
+            //Properties.Settings.Default.myCheck = checkBox1.Checked;
+            //Properties.Settings.Default.myNumber = Convert.ToInt32(numericUpDown1.Value);
+            //Properties.Settings.Default.Save();
         }
 
         public async void TestMethod()
@@ -116,11 +132,37 @@ namespace MqttViewer.ViewModel
 
         public void ConnectMethod()
         {
-            MqttClient.Run();
-        }
-        public void DisconnectMethod()
-        {
-            MqttClient.Stop();
+            // to connect
+            if(Connection == Connection.Connect){
+
+                var popup = new IpAddressPopup();
+
+                popup.BindData.IpAddress = Properties.Settings.Default.HOST;
+                popup.BindData.Port = Properties.Settings.Default.PORT;
+
+                var result = popup.ShowDialog();
+
+                if (result.Value)
+                {
+                    var ipAddress = popup.BindData.IpAddress.Trim();
+                    var port = popup.BindData.Port;
+
+                    if (!string.IsNullOrEmpty(ipAddress))
+                    {
+                        MqttClient.Run(ipAddress, port);
+
+                        Properties.Settings.Default.HOST = ipAddress;
+                        Properties.Settings.Default.PORT = port;
+                        Properties.Settings.Default.Save();
+                    }
+                }
+            }
+
+            // to disconnect
+            if (Connection == Connection.Disconnect){
+                MqttClient.Stop();
+            }
+            
         }
         private void TopicSelectMethod(object sender)
         {
@@ -143,6 +185,14 @@ namespace MqttViewer.ViewModel
             {
                 Debug.WriteLine(ex);
             }
+        }
+        private void MqttClient_ConnectEvent(object sender, MqttClientConnectedEventArgs e)
+        {
+            Connection = Connection.Disconnect;
+        }
+        private void MqttClient_DisConnectEvent(object sender, MqttClientDisconnectedEventArgs e)
+        {
+            Connection = Connection.Connect;
         }
         private void MqttClient_MessageEvent(object sender, MqttApplicationMessageReceivedEventArgs e)
         {
@@ -172,6 +222,13 @@ namespace MqttViewer.ViewModel
             {
                 var name = array[index];
                 var value = string.Empty;
+                var isExpanded = true;
+
+                if (array.Length - index < 3){
+                    isExpanded = false;
+                }
+
+
                 if (index == (array.Length - 1)){
                     value = $"{Encoding.UTF8.GetString(message.Payload)}";
                 }
@@ -186,10 +243,10 @@ namespace MqttViewer.ViewModel
                 {
                     var newNode = new Node() { Key = index, Name = name, SubNodes = new ObservableCollection<Node>() };
                     newNode.Value = value;
+                    newNode.IsExpanded = isExpanded;
+
                     nodes.Add(newNode);
                     nodes = newNode.SubNodes;
-
-
                 }
             }
 

@@ -22,22 +22,22 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
-            <StackPanel Orientation="Horizontal">
-                <Button Width="120" Margin="4" Command="{Binding ConnectCommand}" >Connect</Button>
-                <Button Width="120" Margin="4" Command="{Binding DisconnectCommand}" >Disconnect</Button>
+        <Grid Grid.Row="1">
+            <!--<StackPanel Orientation="Horizontal">
                 <Button Width="80" Margin="16,4" Command="{Binding TestCommand}" >test</Button>
-            </StackPanel>
+            </StackPanel>-->
+            <Button Width="120" Margin="4" VerticalAlignment="Top" HorizontalAlignment="Right" Style="{DynamicResource MahApps.Styles.Button.Square}" FontSize="14" 
+                    Content="{Binding Connection}" Command="{Binding ConnectCommand}" /> 
         </Grid>
-        <TabControl Grid.Row="1" SelectedIndex="1">
+        <TabControl Grid.Row="1" SelectedIndex="0">
             <TabItem Header="Infomatin" >
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <TreeView x:Name="topicTreeView" Grid.Column="0" BorderThickness="1" BorderBrush="Gainsboro"
-                              ItemsSource="{Binding Nodes}">
+                              ItemsSource="{Binding Nodes}" >
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="SelectedItemChanged">
                                 <i:InvokeCommandAction Command="{Binding TopicSelectCommand}"
@@ -52,6 +52,11 @@
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}" >
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
                     </TreeView>
                     <Grid Grid.Column="1">
                         <TextBox Text="{Binding TopicValue}" FontFamily="Consolas" TextWrapping="Wrap" AcceptsReturn="True" />

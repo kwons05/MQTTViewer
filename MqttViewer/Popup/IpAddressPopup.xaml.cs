@@ -1,5 +1,6 @@
 ﻿using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,13 +22,39 @@ namespace MqttViewer.Popup
     /// </summary>
     public partial class IpAddressPopup : MetroWindow
     {
+        public class Bind : BindableBase
+        {
+            private string _ipAddress = string.Empty;
+            public string IpAddress
+            {
+                get { return _ipAddress; }
+                set { SetProperty(ref _ipAddress, value); }
+            }
+
+            private int _port = 1883;
+            public int Port
+            {
+                get { return _port; }
+                set { SetProperty(ref _port, value); }
+            }
+        }
+
+        public Bind BindData { get; set; }
+
         public IpAddressPopup()
         {
             InitializeComponent();
 
             this.Owner = Application.Current.MainWindow;
 
-            this.DataContext = new IpAddressPopupViewModel(DialogCoordinator.Instance);
+            this.BindData = new Bind(); 
+
+            this.DataContext = this;
+        }
+
+        private void ConnectButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = true;
         }
     }
 }

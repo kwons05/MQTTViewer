@@ -83,6 +83,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\mqtt\config.cs" />
     <Compile Include="Models\mqtt\location.cs" />
     <Compile Include="Models\mqtt\status.cs" />
@@ -90,6 +91,7 @@
       <DependentUpon>IpAddressPopup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Popup\IpAddressPopupViewModel.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Utility\Logger.cs" />
     <Compile Include="ViewModel\ViewModel.cs" />
     <Page Include="MainWindow.xaml">
@@ -133,7 +135,7 @@
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>

@@ -22,6 +22,8 @@ namespace MqttViewer.Module
 
 
         public event EventHandler<MqttApplicationMessageReceivedEventArgs> MessageEvent;
+        public event EventHandler<MqttClientConnectedEventArgs>            ConnectEvent;
+        public event EventHandler<MqttClientDisconnectedEventArgs>         DisConnectEvent;
 
         public void Test()
         {
@@ -36,7 +38,7 @@ namespace MqttViewer.Module
                 await mqttClient.StopAsync();
             }
         }
-        public async void Run()
+        public async void Run(string host, int port)
         {
             try
             {
@@ -48,8 +50,8 @@ namespace MqttViewer.Module
                     ClientId = "MqttClientApp",
                     ChannelOptions = new MqttClientTcpOptions
                     {
-                        Server = "211.214.194.50",
-                        Port = 1883,
+                        Server = host,
+                        Port = port,
                     },
                     
                 };
@@ -109,6 +111,7 @@ namespace MqttViewer.Module
         public void OnConnected(MqttClientConnectedEventArgs obj)
         {
             logger.Write("CONNECTED WITH SERVER");
+            ConnectEvent?.Invoke(this, obj);
         }
 
         public void OnConnectingFailed(ManagedProcessFailedEventArgs obj)
@@ -119,6 +122,7 @@ namespace MqttViewer.Module
         public void OnDisconnected(MqttClientDisconnectedEventArgs obj)
         {
             logger.Write("DISCONNECTED FROM SERVER");
+            DisConnectEvent?.Invoke(this, obj);
         }
         public void OnMessageReceived(MqttApplicationMessageReceivedEventArgs obj)
         {
